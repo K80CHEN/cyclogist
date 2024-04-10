@@ -90,6 +90,7 @@
                 for (let trip of trips) {
                     trip.started_at = new Date(trip.started_at);
                     trip.ended_at = new Date(trip.ended_at);
+
                     let startedMinutes = minutesSinceMidnight(trip.started_at);
                     departuresByMinute[startedMinutes].push(trip);
 
@@ -121,7 +122,6 @@
         filteredStations = stations;
         filteredArrivals = arrivals;
         filteredDepartures = departures;
-        console.log(filteredArrivals, filteredDepartures);
     });
 
     function getCoords(station) {
@@ -140,37 +140,37 @@
     $: timeFilterLabel = new Date(0, 0, 0, 0, timeFilter).toLocaleString("en", {
         timeStyle: "short",
     });
-    // $: filteredTrips =
-    //     timeFilter === -1
-    //         ? trips
-    //         : trips.filter((trip) => {
-    //               let startedMinutes = minutesSinceMidnight(trip.started_at);
-    //               let endedMinutes = minutesSinceMidnight(trip.ended_at);
-    //               return (
-    //                   Math.abs(startedMinutes - timeFilter) <= 60 ||
-    //                   Math.abs(endedMinutes - timeFilter) <= 60
-    //               );
-    //           });
+    $: filteredTrips =
+        timeFilter === -1
+            ? trips
+            : trips.filter((trip) => {
+                  let startedMinutes = minutesSinceMidnight(trip.started_at);
+                  let endedMinutes = minutesSinceMidnight(trip.ended_at);
+                  return (
+                      Math.abs(startedMinutes - timeFilter) <= 60 ||
+                      Math.abs(endedMinutes - timeFilter) <= 60
+                  );
+              });
 
-    // $: filteredArrivals = d3.rollup(
-    //     filteredTrips,
-    //     (v) => v.length,
-    //     (d) => d.end_station_id,
-    // );
+    $: filteredArrivals = d3.rollup(
+        filteredTrips,
+        (v) => v.length,
+        (d) => d.end_station_id,
+    );
 
-    // $: filteredDepartures = d3.rollup(
-    //     filteredTrips,
-    //     (v) => v.length,
-    //     (d) => d.start_station_id,
-    // );
+    $: filteredDepartures = d3.rollup(
+        filteredTrips,
+        (v) => v.length,
+        (d) => d.start_station_id,
+    );
 
-    $: filteredDepartures = departuresByMinute
-        .slice(timeFilter - 60, timeFilter + 60)
-        .flat();
+    // $: filteredDepartures = departuresByMinute
+    //     .slice(timeFilter - 60, timeFilter + 60)
+    //     .flat();
 
-    $: filteredArrivals = arrivalsByMinute
-        .slice(timeFilter - 60, timeFilter + 60)
-        .flat();
+    // $: filteredArrivals = arrivalsByMinute
+    //     .slice(timeFilter - 60, timeFilter + 60)
+    //     .flat();
 
     $: filteredStations = stations.map((station) => {
         let updatedStation = { ...station };
@@ -263,13 +263,8 @@
         fill: var(--color);
     }
 
-    .legend {
-        display: flex;
-        gap: 1em;
-        margin-block: 1em;
-    }
-
-    .legend > div {
+    .legend > div,
+    circle {
         --color-departures: steelblue;
         --color-arrivals: darkorange;
         --color: color-mix(
@@ -277,13 +272,27 @@
             var(--color-departures) calc(100% * var(--departure-ratio)),
             var(--color-arrivals)
         );
-        fill: var(--color);
     }
-    /* select div in class=legend */
-    .legend > div {
+
+    .legend {
         display: flex;
-        gap: 1em;
-        align-items: center;
+        gap: 1px;
+    }
+
+    .legend div {
+        flex: 1;
+        background-color: var(--color);
+        padding: 0.1rem 1rem;
+
+        color: white;
+        font-weight: bold;
+        font-size: small;
+        &:nth-child(2) {
+            text-align: center;
+        }
+        &:nth-child(3) {
+            text-align: right;
+        }
     }
 
     header {
